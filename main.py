@@ -43,6 +43,17 @@ class RandomForest(Generalizer):
     def predict(self, data):
         return(self.model.predict(data))
 
+class ExtraTrees(Generalizer):
+    def name(self):
+        return("extra_trees")
+
+    def train(self, data, label):
+        et = ExtraTreesClassifier(n_estimators=100, n_jobs=-1, criterion='gini')
+        self.model= et.fit(data, label)
+
+    def predict(self, data):
+        return(self.model.predict(data))
+
 from sklearn import datasets
 import numpy
 import pdb
