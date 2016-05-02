@@ -31,7 +31,7 @@ class Generalizer:
     def assert_model(self):
         assert(self.model != None)
 
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 class RandomForest(Generalizer):
     def name(self):
         return("random_forest")
@@ -54,15 +54,24 @@ class ExtraTrees(Generalizer):
     def predict(self, data):
         return(self.model.predict(data))
 
+# class StackGeneralization:
+#     def __init__(self, layer0_generalizers):
+#         self.layer0_generalizers = layer0_generalizers
+# 
+#     def train(self, data, target):
+
 from sklearn import datasets
 import numpy
 import pdb
 def main():
     iris = datasets.load_iris()
-    rf = RandomForest()
-    rf.train(iris.data[0:124], iris.target[0:124])
-    predicted = rf.predict(iris.data[125:149])
-    pdb.set_trace()
+
+    generalizers = [RandomForest(), ExtraTrees()]
+    for generalizer in generalizers:
+        generalizer.train(iris.data[0:124], iris.target[0:124])
+    predicted = numpy.array(
+        [generalizer.predict(iris.data[125:149]) for generalizer in generalizers])
+    predicted
 
 if __name__ == "__main__":
     main()
