@@ -79,7 +79,9 @@ def train_layer0(generalizers, n_folds, train_data, train_target):
             layer1_input,
             generalizer_prediction))
 
-    return(layer1_input.T)
+    reordered_target = train_target[[test_index for _, test_indices in skf for
+                                    test_index in test_indices]]
+    return(layer1_input.T, reordered_target)
 
 def predict_layer0(generalizers, n_folds, train_data, train_target, test_data):
     layer1_input = numpy.empty((0, len(train_data)))
@@ -97,12 +99,12 @@ def main():
     iris = datasets.load_iris()
     train_data = iris.data
     test_data = iris.data # FIXME: for simplification
-    train_target = numpy.array(iris.target, dtype="float64")
+    train_target = numpy.array(iris.target)
     generalizers = [RandomForest(), ExtraTrees()]
 
-    layer1_train_input = train_layer0(generalizers, n_folds, train_data, train_target)
+    layer1_train_input, layer1_train_target = train_layer0(generalizers, n_folds, train_data, train_target)
     layer1_generalizer = RandomForest()
-    layer1_generalizer.train(layer1_train_input, train_target)
+    layer1_generalizer.train(layer1_train_input, layer1_train_target)
 
     layer1_test_input = predict_layer0(generalizers, n_folds, train_data, train_target, test_data)
     result = layer1_generalizer.predict(layer1_test_input)
