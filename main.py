@@ -62,11 +62,33 @@ class ExtraTrees(Generalizer):
 
 from sklearn import datasets
 import numpy
-import pdb
+from sklearn.cross_validation import StratifiedKFold
 def main():
+    n_folds = 3
     iris = datasets.load_iris()
-
+    data = iris.data
+    target = iris.target
     generalizers = [RandomForest(), ExtraTrees()]
+
+    skf = StratifiedKFold(y=iris.target, n_folds=n_folds)
+    layer1_input = numpy.empty((0, len(data)))
+    for generalizer in generalizers:
+        generalizer_prediction = numpy.array([])
+        for train_index, test_index in skf:
+            generalizer.train(data[train_index], target[train_index])
+            generalizer_prediction = numpy.append(
+                generalizer_prediction,
+                generalizer.predict(data[test_index]))
+
+        layer1_input = numpy.vstack((
+            layer1_input,
+            generalizer_prediction))
+
+    layer1_input = layer1_input.T
+
+
+
+
     for generalizer in generalizers:
         generalizer.train(iris.data[0:124], iris.target[0:124])
     predicted = numpy.array(
