@@ -63,37 +63,50 @@ class ExtraTrees(Generalizer):
 from sklearn import datasets
 import numpy
 from sklearn.cross_validation import StratifiedKFold
-def main():
-    n_folds = 3
-    iris = datasets.load_iris()
-    data = iris.data
-    target = iris.target
-    generalizers = [RandomForest(), ExtraTrees()]
 
-    skf = StratifiedKFold(y=iris.target, n_folds=n_folds)
-    layer1_input = numpy.empty((0, len(data)))
+def train_layer0(generalizers, n_folds, train_data, train_target):
+    skf = StratifiedKFold(y=train_target, n_folds=n_folds)
+    layer1_input = numpy.empty((0, len(train_data)))
     for generalizer in generalizers:
         generalizer_prediction = numpy.array([])
         for train_index, test_index in skf:
-            generalizer.train(data[train_index], target[train_index])
+            generalizer.train(train_data[train_index], train_target[train_index])
             generalizer_prediction = numpy.append(
                 generalizer_prediction,
-                generalizer.predict(data[test_index]))
+                generalizer.predict(train_data[test_index]))
 
         layer1_input = numpy.vstack((
             layer1_input,
             generalizer_prediction))
 
-    layer1_input = layer1_input.T
+    return(layer1_input.T)
 
-
-
-
+def predict_layer0(generalizers, n_folds, train_data, train_target, test_data):
+    layer1_input = numpy.empty((0, len(train_data)))
     for generalizer in generalizers:
-        generalizer.train(iris.data[0:124], iris.target[0:124])
-    predicted = numpy.array(
-        [generalizer.predict(iris.data[125:149]) for generalizer in generalizers])
-    predicted
+        generalizer.train(train_data, train_target)
+        generalizer_prediction = generalizer.predict(test_data)
+        layer1_input = numpy.vstack((
+            layer1_input,
+            generalizer_prediction))
+
+    return(layer1_input.T)
+
+def main():
+    n_folds = 3
+    iris = datasets.load_iris()
+    train_data = iris.data
+    test_data = iris.data # FIXME: for simplification
+    train_target = numpy.array(iris.target, dtype="float64")
+    generalizers = [RandomForest(), ExtraTrees()]
+
+    layer1_train_input = train_layer0(generalizers, n_folds, train_data, train_target)
+    layer1_generalizer = RandomForest()
+    layer1_generalizer.train(layer1_train_input, train_target)
+
+    layer1_test_input = predict_layer0(generalizers, n_folds, train_data, train_target, test_data)
+    result = layer1_generalizer.predict(layer1_test_input)
+    print(result)
 
 if __name__ == "__main__":
     main()
