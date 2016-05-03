@@ -54,17 +54,11 @@ class ExtraTrees(Generalizer):
     def predict(self, data):
         return(self.model.predict(data))
 
-# class StackGeneralization:
-#     def __init__(self, layer0_generalizers):
-#         self.layer0_generalizers = layer0_generalizers
-# 
-#     def train(self, data, target):
-
 from sklearn import datasets
 import numpy
 from sklearn.cross_validation import StratifiedKFold
 
-def train_layer0(generalizers, n_folds, train_data, train_target):
+def guess_layer0_with_partition(generalizers, n_folds, train_data, train_target):
     skf = StratifiedKFold(y=train_target, n_folds=n_folds)
     layer1_input = numpy.empty((0, len(train_data)))
     for generalizer in generalizers:
@@ -83,7 +77,7 @@ def train_layer0(generalizers, n_folds, train_data, train_target):
                                     test_index in test_indices]]
     return(layer1_input.T, reordered_target)
 
-def predict_layer0(generalizers, n_folds, train_data, train_target, test_data):
+def guess_layer0_with_whole(generalizers, n_folds, train_data, train_target, test_data):
     layer1_input = numpy.empty((0, len(train_data)))
     for generalizer in generalizers:
         generalizer.train(train_data, train_target)
@@ -102,11 +96,12 @@ def main():
     train_target = numpy.array(iris.target)
     generalizers = [RandomForest(), ExtraTrees()]
 
-    layer1_train_input, layer1_train_target = train_layer0(generalizers, n_folds, train_data, train_target)
+    layer1_train_data, layer1_train_target = guess_layer0_with_partition(
+        generalizers, n_folds, train_data, train_target)
     layer1_generalizer = RandomForest()
-    layer1_generalizer.train(layer1_train_input, layer1_train_target)
+    layer1_generalizer.train(layer1_train_data, layer1_train_target)
 
-    layer1_test_input = predict_layer0(generalizers, n_folds, train_data, train_target, test_data)
+    layer1_test_input = guess_layer0_with_whole(generalizers, n_folds, train_data, train_target, test_data)
     result = layer1_generalizer.predict(layer1_test_input)
     print(result)
 
