@@ -73,9 +73,8 @@ def guess_layer0_with_partition(generalizers, n_folds, train_data, train_target)
             layer1_input,
             generalizer_prediction))
 
-    reordered_target = train_target[[test_index for _, test_indices in skf for
-                                    test_index in test_indices]]
-    return(layer1_input.T, reordered_target)
+    reorder_index = [test_index for _, test_indices in skf for test_index in test_indices]
+    return(layer1_input[:, reorder_index].T)
 
 def guess_layer0_with_whole(generalizers, n_folds, train_data, train_target, test_data):
     layer1_input = numpy.empty((0, len(train_data)))
@@ -96,10 +95,10 @@ def main():
     train_target = numpy.array(iris.target)
     generalizers = [RandomForest(), ExtraTrees()]
 
-    layer1_train_data, layer1_train_target = guess_layer0_with_partition(
+    layer1_train_data = guess_layer0_with_partition(
         generalizers, n_folds, train_data, train_target)
     layer1_generalizer = RandomForest()
-    layer1_generalizer.train(layer1_train_data, layer1_train_target)
+    layer1_generalizer.train(layer1_train_data, train_target)
 
     layer1_test_input = guess_layer0_with_whole(generalizers, n_folds, train_data, train_target, test_data)
     result = layer1_generalizer.predict(layer1_test_input)
