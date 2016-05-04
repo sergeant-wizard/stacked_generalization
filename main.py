@@ -97,11 +97,12 @@ def main():
 
     layer1_train_data = guess_layer0_with_partition(
         generalizers, n_folds, train_data, train_target)
+    layer1_test_data = guess_layer0_with_whole(
+        generalizers, n_folds, train_data, train_target, test_data)
+
     layer1_generalizer = RandomForest()
     layer1_generalizer.train(layer1_train_data, train_target)
-
-    layer1_test_input = guess_layer0_with_whole(generalizers, n_folds, train_data, train_target, test_data)
-    result = layer1_generalizer.predict(layer1_test_input)
+    result = layer1_generalizer.predict(layer1_test_data)
     print(result)
 
 if __name__ == "__main__":
