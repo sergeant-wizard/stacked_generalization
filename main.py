@@ -1,9 +1,10 @@
+from sklearn.metrics import log_loss
+import numpy
+
 from random_forest import RandomForest
 from extra_trees import ExtraTrees
 from stacked_generalization import StackedGeneralization
-import numpy
-
-# from sklearn import datasets
+from sklearn import datasets
 
 def load_bio_data():
     raw_train = numpy.loadtxt('train.csv', delimiter=',', skiprows=1)
@@ -13,24 +14,38 @@ def load_bio_data():
                               dtype=numpy.int16)
     return(train_data, train_target, test_data)
 
+def load_iris_data():
+    iris = datasets.load_iris()
+    train_data = iris.data
+    train_target = iris.target
+    test_data = iris.data # for simplicity
+    return(train_data, train_target, test_data)
+
 def main():
     n_folds = 3
-    (train_data, train_target, test_data) = load_bio_data()
+    # (train_data, train_target, test_data) = load_bio_data()
+    (train_data, train_target, test_data) = load_iris_data()
     generalizers = [RandomForest(), ExtraTrees()]
 
     sg = StackedGeneralization(n_folds, train_data, train_target, test_data)
-    layer0_partition_guess = StackedGeneralization.merge([sg.guess_layer0_with_partition(generalizer) for
+    layer0_partition_guess = numpy.array([sg.guess_layer0_with_partition(generalizer) for
                               generalizer in generalizers])
-    layer0_whole_guess = StackedGeneralization.merge([sg.guess_layer0_with_whole(generalizer) for
+
+    # not necessary, but nice to have for tuning each layer0 classifiers
+    for generalizer_index, generalizer in enumerate(generalizers):
+        print("log loss for {} : {}".format(
+            generalizer.name(),
+            log_loss(train_target, layer0_partition_guess[generalizer_index, :, :])
+        ))
+
+    layer0_whole_guess = numpy.array([sg.guess_layer0_with_whole(generalizer) for
                           generalizer in generalizers])
 
     result = StackedGeneralization.guess_layer1(
         RandomForest(),
-        layer0_partition_guess,
+        numpy.hstack(layer0_partition_guess),
         train_target,
-        layer0_whole_guess)
-
-    print(result)
+        numpy.hstack(layer0_whole_guess))
 
 if __name__ == "__main__":
     main()

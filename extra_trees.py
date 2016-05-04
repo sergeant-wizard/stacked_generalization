@@ -10,4 +10,4 @@ class ExtraTrees(Generalizer):
         self.model= et.fit(data, label)
 
     def predict(self, data):
-        return(self.model.predict(data))
+        return(self.model.predict_proba(data))

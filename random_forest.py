@@ -10,4 +10,4 @@ class RandomForest(Generalizer):
         self.model = rfc.fit(data, label)
 
     def predict(self, data):
-        return(self.model.predict(data))
+        return(self.model.predict_proba(data))
