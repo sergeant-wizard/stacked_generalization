@@ -1,4 +1,5 @@
 from sklearn.cross_validation import StratifiedKFold
+import numpy
 
 class StackedGeneralization:
     def __init__(self, n_folds, train_data, train_target, test_data):
@@ -22,8 +23,14 @@ class StackedGeneralization:
 
     def guess_layer0_with_whole(self, generalizer):
         generalizer.train(self.train_data, self.train_target)
-        return(generalizer.predict(test_data))
+        return(generalizer.predict(self.test_data))
 
     @staticmethod
-    def merge_generalizer_predictions(predictions):
+    def merge(predictions):
         return(numpy.vstack(predictions).T)
+
+    @staticmethod
+    def guess_layer1(generalizer, train_data, train_target, test_data):
+        generalizer.train(train_data, train_target)
+        return(generalizer.predict(test_data))
+
