@@ -1,15 +1,21 @@
 from random_forest import RandomForest
 from extra_trees import ExtraTrees
 from stacked_generalization import StackedGeneralization
+import numpy
 
-from sklearn import datasets
+# from sklearn import datasets
+
+def load_bio_data():
+    raw_train = numpy.loadtxt('train.csv', delimiter=',', skiprows=1)
+    train_target = raw_train[:, 0]
+    train_data = raw_train[:, 1:]
+    test_data = numpy.loadtxt('test.csv', delimiter=',', skiprows=1,
+                              dtype=numpy.int16)
+    return(train_data, train_target, test_data)
 
 def main():
     n_folds = 3
-    iris = datasets.load_iris()
-    train_data = iris.data
-    test_data = iris.data # FIXME: for simplification
-    train_target = iris.target
+    (train_data, train_target, test_data) = load_bio_data()
     generalizers = [RandomForest(), ExtraTrees()]
 
     sg = StackedGeneralization(n_folds, train_data, train_target, test_data)
