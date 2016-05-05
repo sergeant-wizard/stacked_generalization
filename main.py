@@ -3,6 +3,7 @@ import numpy
 
 from random_forest import RandomForest
 from extra_trees import ExtraTrees
+from logistic_regression import LogisticRegression
 from stacked_generalization import StackedGeneralization
 from sklearn import datasets # for debugging with iris
 
@@ -41,7 +42,7 @@ def main():
                           generalizer in generalizers])
 
     result = StackedGeneralization.guess_layer1(
-        RandomForest(),
+        LogisticRegression(),
         numpy.hstack(layer0_partition_guess),
         train_target,
         numpy.hstack(layer0_whole_guess))
