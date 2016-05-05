@@ -4,14 +4,13 @@ import numpy
 from random_forest import RandomForest
 from extra_trees import ExtraTrees
 from stacked_generalization import StackedGeneralization
-from sklearn import datasets
+from sklearn import datasets # for debugging with iris
 
 def load_bio_data():
     raw_train = numpy.loadtxt('train.csv', delimiter=',', skiprows=1)
     train_target = raw_train[:, 0]
     train_data = raw_train[:, 1:]
-    test_data = numpy.loadtxt('test.csv', delimiter=',', skiprows=1,
-                              dtype=numpy.int16)
+    test_data = numpy.loadtxt('test.csv', delimiter=',', skiprows=1)
     return(train_data, train_target, test_data)
 
 def load_iris_data():
@@ -23,8 +22,8 @@ def load_iris_data():
 
 def main():
     n_folds = 3
-    # (train_data, train_target, test_data) = load_bio_data()
-    (train_data, train_target, test_data) = load_iris_data()
+    (train_data, train_target, test_data) = load_bio_data()
+    # (train_data, train_target, test_data) = load_iris_data()
     generalizers = [RandomForest(), ExtraTrees()]
 
     sg = StackedGeneralization(n_folds, train_data, train_target, test_data)
@@ -46,6 +45,13 @@ def main():
         numpy.hstack(layer0_partition_guess),
         train_target,
         numpy.hstack(layer0_whole_guess))
+
+    id_column = numpy.array(range(len(result))) + 1
+    numpy.savetxt(
+        'predicted.csv',
+        numpy.array([id_column, result[:, 1]]).T,
+        fmt='%d,%1.6f',
+        header='id, activation')
 
 if __name__ == "__main__":
     main()
