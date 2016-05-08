@@ -26,6 +26,7 @@ def main():
     (train_data, train_target, test_data) = load_bio_data()
     # (train_data, train_target, test_data) = load_iris_data()
     generalizers = [RandomForest(), ExtraTrees()]
+    id_column = numpy.array(range(len(test_data))) + 1
 
     sg = StackedGeneralization(n_folds, train_data, train_target, test_data)
     layer0_partition_guess = numpy.array([sg.guess_layer0_with_partition(generalizer) for
@@ -37,6 +38,11 @@ def main():
             generalizer.name(),
             log_loss(train_target, layer0_partition_guess[generalizer_index, :, :])
         ))
+        numpy.savetxt(
+            '{}.csv'.format(generalizer.name()),
+            numpy.array([id_column, generalizer.predict(test_data)[:, 1]]).T,
+            fmt='%d,%1.6f',
+            header='id, activation')
 
     layer0_whole_guess = numpy.array([sg.guess_layer0_with_whole(generalizer) for
                           generalizer in generalizers])
@@ -47,7 +53,6 @@ def main():
         train_target,
         numpy.hstack(layer0_whole_guess))
 
-    id_column = numpy.array(range(len(result))) + 1
     numpy.savetxt(
         'predicted.csv',
         numpy.array([id_column, result[:, 1]]).T,
