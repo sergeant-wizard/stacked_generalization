@@ -51,19 +51,19 @@ def load_layer0(filenames):
 
 def initialize_sg():
     n_folds = 3
-    # (train_data, train_target, test_data) = load_bio_data()
-    (train_data, train_target, test_data) = load_iris_data()
+    (train_data, train_target, test_data) = load_bio_data()
+    # (train_data, train_target, test_data) = load_iris_data()
     return(StackedGeneralization(n_folds, train_data, train_target, test_data))
 
 def main():
     sg = initialize_sg()
     # for ad-hoc training
-    generalizers = [RandomForest(), ExtraTrees()]
-    layer0_partition_guess, layer0_whole_guess = train_layer0(sg, generalizers)
+    # generalizers = [RandomForest(), ExtraTrees()]
+    # layer0_partition_guess, layer0_whole_guess = train_layer0(sg, generalizers)
 
     # loading predictions
-    # layer0_partition_guess, layer0_whole_guess = load_layer0(["random_forest",
-    #                                                           "extra_trees"])
+    layer0_partition_guess, layer0_whole_guess = load_layer0(["random_forest",
+                                                              "extra_trees"])
 
     result = LogisticRegression().guess(
         numpy.hstack(layer0_partition_guess),

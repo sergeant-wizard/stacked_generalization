@@ -42,7 +42,7 @@ class Generalizer:
 
     @staticmethod
     def load_whole(name):
-        return(numpy.load(Generalizer._partial_path(name)))
+        return(numpy.load(Generalizer._whole_path(name)))
 
     @staticmethod
     def save_partial(name, prediction):
