@@ -5,6 +5,7 @@ from random_forest import RandomForest
 from extra_trees import ExtraTrees
 from logistic_regression import LogisticRegression
 from stacked_generalization import StackedGeneralization
+from generalizer import Generalizer
 from sklearn import datasets # for debugging with iris
 
 def load_bio_data():
@@ -21,37 +22,55 @@ def load_iris_data():
     test_data = iris.data # for simplicity
     return(train_data, train_target, test_data)
 
-def main():
+def train_layer0(sg, generalizers, save_predictions = True):
+    layer0_partition_guess = numpy.array([generalizer.guess_partial(sg) for generalizer in generalizers])
+
+    for generalizer_index, generalizer in enumerate(generalizers):
+        if save_predictions:
+            Generalizer.save_partial(generalizer.name(),
+                                              layer0_partition_guess[generalizer_index])
+        print("log loss for {} : {}".format(
+            generalizer.name(),
+            log_loss(sg.train_target, layer0_partition_guess[generalizer_index, :, :])
+        ))
+
+    layer0_whole_guess = numpy.array([generalizer.guess_whole(sg) for generalizer in generalizers])
+    for generalizer_index, generalizer in enumerate(generalizers):
+        if save_predictions:
+            Generalizer.save_whole(generalizer.name(),
+                                   layer0_whole_guess[generalizer_index])
+
+    return(layer0_partition_guess, layer0_whole_guess)
+
+def load_layer0(filenames):
+    layer0_partial_guess = numpy.array([Generalizer.load_partial(filename) for
+                                        filename in filenames])
+    layer0_whole_guess = numpy.array([Generalizer.load_whole(filename) for
+                                        filename in filenames])
+    return(layer0_partial_guess, layer0_whole_guess)
+
+def initialize_sg():
     n_folds = 3
     (train_data, train_target, test_data) = load_bio_data()
     # (train_data, train_target, test_data) = load_iris_data()
-    generalizers = [RandomForest(), ExtraTrees()]
-    id_column = numpy.array(range(len(test_data))) + 1
+    return(StackedGeneralization(n_folds, train_data, train_target, test_data))
 
-    sg = StackedGeneralization(n_folds, train_data, train_target, test_data)
-    layer0_partition_guess = numpy.array([sg.guess_layer0_with_partition(generalizer) for
-                              generalizer in generalizers])
+def main():
+    sg = initialize_sg()
+    # for ad-hoc training
+    # generalizers = [RandomForest(), ExtraTrees()]
+    # layer0_partition_guess, layer0_whole_guess = train_layer0(sg, generalizers)
 
-    # not necessary, but nice to have for tuning each layer0 classifiers
-    for generalizer_index, generalizer in enumerate(generalizers):
-        print("log loss for {} : {}".format(
-            generalizer.name(),
-            log_loss(train_target, layer0_partition_guess[generalizer_index, :, :])
-        ))
-        numpy.savetxt(
-            '{}.csv'.format(generalizer.name()),
-            numpy.array([id_column, generalizer.predict(test_data)[:, 1]]).T,
-            fmt='%d,%1.6f',
-            header='id, activation')
+    # loading predictions
+    layer0_partition_guess, layer0_whole_guess = load_layer0(["random_forest",
+                                                              "extra_trees"])
 
-    layer0_whole_guess = numpy.array([sg.guess_layer0_with_whole(generalizer) for
-                          generalizer in generalizers])
-
-    result = StackedGeneralization.guess_layer1(
-        LogisticRegression(),
+    result = LogisticRegression().guess(
         numpy.hstack(layer0_partition_guess),
-        train_target,
+        sg.train_target,
         numpy.hstack(layer0_whole_guess))
+
+    id_column = numpy.array(range(len(sg.test_data))) + 1
 
     numpy.savetxt(
         'predicted.csv',

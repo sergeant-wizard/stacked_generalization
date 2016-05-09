@@ -1,5 +1,5 @@
-from generalizer import Generalizer
 from sklearn.ensemble import ExtraTreesClassifier
+from generalizer import Generalizer
 
 class ExtraTrees(Generalizer):
     def name(self):
