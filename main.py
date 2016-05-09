@@ -76,7 +76,8 @@ def main():
         'predicted.csv',
         numpy.array([id_column, result[:, 1]]).T,
         fmt='%d,%1.6f',
-        header='id, activation')
+        header='MoleculeId,PredictedProbability',
+        comments='')
 
 if __name__ == "__main__":
     main()
