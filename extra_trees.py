@@ -1,7 +1,7 @@
 from sklearn.ensemble import ExtraTreesClassifier
-from generalizer import EphemeralGeneralizer
+from generalizer import Generalizer
 
-class ExtraTrees(EphemeralGeneralizer):
+class ExtraTrees(Generalizer):
     def name(self):
         return("extra_trees")
 

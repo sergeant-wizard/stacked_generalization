@@ -1,7 +1,7 @@
 from sklearn.linear_model import LinearRegression as LR
-from generalizer import EphemeralGeneralizer
+from generalizer import Generalizer
 
-class LinearRegression(EphemeralGeneralizer):
+class LinearRegression(Generalizer):
     def name(self):
         return("linear_regression")
 

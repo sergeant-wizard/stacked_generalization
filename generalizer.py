@@ -1,32 +1,13 @@
 from os import path
-import pickle
 import numpy
 from stacked_generalization import StackedGeneralization
 
 class Generalizer:
-    def guess_partial(self, sg):
+    def __init__(self):
+        self.model = None
+
+    def name(self):
         raise NotImplementedError
-
-    def guess_whole(self, sg):
-        raise NotImplementedError
-
-class PerpetualGeneralizer(Generalizer):
-    def __init__(self, filename):
-        self.partial = None # FIXME
-        self.whole = None
-
-    def guess_partial(self, _):
-        return(self.partial)
-
-    def guess_whole(self, _):
-        return(self.whole)
-
-class EphemeralGeneralizer(Generalizer):
-    def __init__(self, from_file = False):
-        if from_file:
-            self.load_model()
-        else:
-            self.model = None
 
     def guess_partial(self, sg):
         assert(isinstance(sg, StackedGeneralization))
@@ -50,25 +31,39 @@ class EphemeralGeneralizer(Generalizer):
         return(self.predict(test_data))
 
     def train(self, data, label):
-        if self.model:
-            print("overwriting model")
-        self._train(data, label)
-
-    def _train(self, data, label):
         raise NotImplementedError
 
     def predict(self, data):
         raise NotImplementedError
 
-    def save_model(self):
-        pickle.dump(self.model, open(self.path(), "wb"))
+    @staticmethod
+    def load_partial(name):
+        return(numpy.load(Generalizer._partial_path(name)))
 
-    def load_model(self):
-        self.model = pickle.load(open(self.path(), "rb"))
+    @staticmethod
+    def load_whole(name):
+        return(numpy.load(Generalizer._partial_path(name)))
 
-    def path(self):
-        return(path.join("data", self.name() + ".p"))
+    @staticmethod
+    def save_partial(name, prediction):
+        numpy.save(Generalizer._partial_path(name), prediction)
 
-    def assert_model(self):
-        assert(self.model != None)
+    @staticmethod
+    def save_whole(name, prediction):
+        numpy.save(Generalizer._whole_path(name), prediction)
+
+    @staticmethod
+    def _partial_path(name, has_ext = True):
+        return(path.join("data", "partial", Generalizer._add_ext(name, has_ext)))
+
+    @staticmethod
+    def _whole_path(name, has_ext = True):
+        return(path.join("data", "whole", Generalizer._add_ext(name, has_ext)))
+
+    @staticmethod
+    def _add_ext(name, has_ext):
+        if has_ext:
+            return(name + '.npy')
+        else:
+            return(name)
 

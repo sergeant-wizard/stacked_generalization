@@ -1,7 +1,7 @@
 from sklearn.linear_model import LogisticRegression as LR
-from generalizer import EphemeralGeneralizer
+from generalizer import Generalizer
 
-class LogisticRegression(EphemeralGeneralizer):
+class LogisticRegression(Generalizer):
     def name(self):
         return("logistic_regression")
 
