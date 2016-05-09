@@ -15,4 +15,5 @@ theory: [Stacked Generalization, by David H. Wolpert](http://www.cs.utsa.edu/~by
 refer to `main.py`
 
 ### ver 0.0.2 goals
-W.I.P.
+
+- saving / loading layer0 results (both partition / whole)

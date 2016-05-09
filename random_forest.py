@@ -1,7 +1,7 @@
 from sklearn.ensemble import RandomForestClassifier
-from generalizer import Generalizer
+from generalizer import EphemeralGeneralizer
 
-class RandomForest(Generalizer):
+class RandomForest(EphemeralGeneralizer):
     def name(self):
         return("random_forest")
 

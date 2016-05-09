@@ -29,8 +29,7 @@ def main():
     id_column = numpy.array(range(len(test_data))) + 1
 
     sg = StackedGeneralization(n_folds, train_data, train_target, test_data)
-    layer0_partition_guess = numpy.array([sg.guess_layer0_with_partition(generalizer) for
-                              generalizer in generalizers])
+    layer0_partition_guess = numpy.array([generalizer.guess_partial(sg) for generalizer in generalizers])
 
     # not necessary, but nice to have for tuning each layer0 classifiers
     for generalizer_index, generalizer in enumerate(generalizers):
@@ -44,11 +43,9 @@ def main():
             fmt='%d,%1.6f',
             header='id, activation')
 
-    layer0_whole_guess = numpy.array([sg.guess_layer0_with_whole(generalizer) for
-                          generalizer in generalizers])
+    layer0_whole_guess = numpy.array([generalizer.guess_whole(sg) for generalizer in generalizers])
 
-    result = StackedGeneralization.guess_layer1(
-        LogisticRegression(),
+    result = LogisticRegression().guess(
         numpy.hstack(layer0_partition_guess),
         train_target,
         numpy.hstack(layer0_whole_guess))
