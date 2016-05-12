@@ -6,7 +6,7 @@ class RandomForest(Generalizer):
         return("random_forest")
 
     def train(self, data, label):
-        rfc = RandomForestClassifier(n_estimators=100, n_jobs=-1, criterion='gini')
+        rfc = RandomForestClassifier(n_estimators=8, n_jobs=-1, criterion='gini')
         self.model = rfc.fit(data, label)
 
     def predict(self, data):
