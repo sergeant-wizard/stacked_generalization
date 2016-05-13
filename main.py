@@ -59,6 +59,9 @@ def load_layer0(filenames):
                                         filename in filenames])
     return(layer0_partial_guess, layer0_whole_guess)
 
+def load_with_suffix(filenames, year):
+    return(load_layer0([filename + "_{}".format(year) for filename in filenames]))
+
 def initialize_sg(year):
     n_folds = 3
     n_classes = 39
@@ -75,35 +78,41 @@ def initialize_sg(year):
 def main():
     valid_years = range(2003, 2016)
     # for ad-hoc training
-    for year in valid_years:
-        sg = initialize_sg(year)
-        generalizers = [RandomForest()]
-        suffix = "_{}".format(year)
-        layer0_partial_guess = train_partial(sg, generalizers, True, suffix)
-        del layer0_partial_guess
-        layer0_whole_guess = train_whole(sg, generalizers, True, suffix)
-    return
+    # for year in valid_years:
+    #     sg = initialize_sg(year)
+    #     generalizers = [RandomForest(), ExtraTrees()]
+    #     suffix = "_{}".format(year)
+    #     layer0_partial_guess = train_partial(sg, generalizers, True, suffix)
+    #     del layer0_partial_guess
+    #     layer0_whole_guess = train_whole(sg, generalizers, True, suffix)
+    # return
+
+    header = 'Id,ARSON,ASSAULT,BAD CHECKS,BRIBERY,BURGLARY,DISORDERLY CONDUCT,DRIVING UNDER THE INFLUENCE,DRUG/NARCOTIC,DRUNKENNESS,EMBEZZLEMENT,EXTORTION,FAMILY OFFENSES,FORGERY/COUNTERFEITING,FRAUD,GAMBLING,KIDNAPPING,LARCENY/THEFT,LIQUOR LAWS,LOITERING,MISSING PERSON,NON-CRIMINAL,OTHER OFFENSES,PORNOGRAPHY/OBSCENE MAT,PROSTITUTION,RECOVERED VEHICLE,ROBBERY,RUNAWAY,SECONDARY CODES,SEX OFFENSES FORCIBLE,SEX OFFENSES NON FORCIBLE,STOLEN PROPERTY,SUICIDE,SUSPICIOUS OCC,TREA,TRESPASS,VANDALISM,VEHICLE THEFT,WARRANTS,WEAPON LAWS'
+    fmt = '%d,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f'
 
     # loading predictions
-    layer0_partial_guess, layer0_whole_guess = load_layer0(['random_forest',
-                                                            'extra_trees'])
+    n_classes = 39
+    result = numpy.empty((0, n_classes))
+    for year in valid_years:
+        print("processing year {}".format(year))
+        sg = initialize_sg(year)
+        layer0_partial_guess, layer0_whole_guess = load_with_suffix(['random_forest', 'extra_trees'], year)
 
-    # truncate for debug
-    # layer0_partial_guess = layer0_partial_guess[:, 0:199999, :]
-    # sg.train_target = sg.train_target[0:199999]
+        prediction = LogisticRegression().guess(
+            numpy.hstack(layer0_partial_guess),
+            sg.train_target,
+            numpy.hstack(layer0_whole_guess))
+        expanded = Generalizer.expand_all_classes(prediction,
+                                                  numpy.unique(sg.train_target),
+                                                  sg.n_classes)
+        result = numpy.vstack((result, expanded))
 
-    result = LogisticRegression().guess(
-        numpy.hstack(layer0_partial_guess),
-        sg.train_target,
-        numpy.hstack(layer0_whole_guess))
-
-    id_column = numpy.array(range(len(sg.test_data)))
-    header = 'Id,ARSON,ASSAULT,BAD CHECKS,BRIBERY,BURGLARY,DISORDERLY CONDUCT,DRIVING UNDER THE INFLUENCE,DRUG/NARCOTIC,DRUNKENNESS,EMBEZZLEMENT,EXTORTION,FAMILY OFFENSES,FORGERY/COUNTERFEITING,FRAUD,GAMBLING,KIDNAPPING,LARCENY/THEFT,LIQUOR LAWS,LOITERING,MISSING PERSON,NON-CRIMINAL,OTHER OFFENSES,PORNOGRAPHY/OBSCENE MAT,PROSTITUTION,RECOVERED VEHICLE,ROBBERY,RUNAWAY,SECONDARY CODES,SEX OFFENSES FORCIBLE,SEX OFFENSES NON FORCIBLE,STOLEN PROPERTY,SUICIDE,SUSPICIOUS OCC,TREA,TRESPASS,VANDALISM,VEHICLE THEFT,WARRANTS,WEAPON LAWS'
+    id_column = numpy.array(range(len(result)))
 
     numpy.savetxt(
         'predicted.csv',
         numpy.hstack((numpy.array([id_column]).T, result)),
-        fmt='%d,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f',
+        fmt=fmt,
         header=header,
         comments='')
 
