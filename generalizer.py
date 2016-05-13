@@ -16,16 +16,18 @@ class Generalizer:
             self.train(sg.train_data[train_index],
                        sg.train_target[train_index])
             # fold_prediction may have less # of classes than sg.n_classes
-            unique_classes = numpy.unique(sg.train_target[train_index])
+            limited_classes = numpy.unique(sg.train_target[train_index])
             fold_prediction = self.predict(sg.train_data[test_index])
-            generalizer_prediction[test_index[:, None], unique_classes] = fold_prediction
+            expanded = Generalizer.expand_all_classes(fold_prediction, limited_classes, sg.n_classes)
+            generalizer_prediction[test_index, :] = expanded
 
-        reorder_index = [test_index for _, test_indices in sg.skf for test_index in test_indices]
-        return(generalizer_prediction[reorder_index, :])
+        return(generalizer_prediction)
 
     def guess_whole(self, sg):
         assert(isinstance(sg, StackedGeneralization))
-        return(self.guess(sg.train_data, sg.train_target, sg.test_data))
+        prediction = self.guess(sg.train_data, sg.train_target, sg.test_data)
+        limited_classes = numpy.unique(sg.train_target)
+        return(Generalizer.expand_all_classes(prediction, limited_classes, sg.n_classes))
 
     def guess(self, input_data, input_target, test_data):
         self.train(input_data, input_target)
@@ -36,6 +38,13 @@ class Generalizer:
 
     def predict(self, data):
         raise NotImplementedError
+
+    @staticmethod
+    def expand_all_classes(thin_matrix, limited_classes, num_classes):
+        assert(thin_matrix.shape[1] == len(limited_classes))
+        ret = numpy.zeros((thin_matrix.shape[0], num_classes))
+        ret[:, limited_classes] = thin_matrix
+        return(ret)
 
     @staticmethod
     def load_partial(name):
