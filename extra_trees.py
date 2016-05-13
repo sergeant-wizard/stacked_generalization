@@ -6,7 +6,7 @@ class ExtraTrees(Generalizer):
         return("extra_trees")
 
     def train(self, data, label):
-        et = ExtraTreesClassifier(n_estimators=8, n_jobs=-1, criterion='gini')
+        et = ExtraTreesClassifier(n_estimators=32, n_jobs=-1, criterion='gini')
         self.model= et.fit(data, label)
 
     def predict(self, data):
