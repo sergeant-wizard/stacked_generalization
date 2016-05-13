@@ -22,31 +22,33 @@ def load_iris_data():
     test_data = iris.data # for simplicity
     return(train_data, train_target, test_data)
 
-def load_sfcc_data():
-    train_data = numpy.load('../scff/train.npy')
-    test_data = numpy.load('../scff/test.npy')
+def load_sfcc_data(year):
+    train_data = numpy.load("../sfcc/train_{}.npy".format(year))
+    test_data = numpy.load("../sfcc/test_{}.npy".format(year))
     train_target = train_data[:, 0].astype(int)
     train_data = train_data[:, 1:]
     return(train_data, train_target, test_data)
 
-def train_partial(sg, generalizers, save_predictions = True):
+def print_logloss(generalizer_name, answer, prediction):
+    loss = log_loss(answer, prediction, eps = 1.0E-15)
+    print("log loss for {} : {}".format(generalizer_name, loss))
+
+def train_partial(sg, generalizers, save_predictions = True, suffix = ''):
     layer0_partial_guess = numpy.array([generalizer.guess_partial(sg) for generalizer in generalizers])
 
     for generalizer_index, generalizer in enumerate(generalizers):
         if save_predictions:
-            Generalizer.save_partial(generalizer.name(),
+            Generalizer.save_partial(generalizer.name() + suffix,
                                               layer0_partial_guess[generalizer_index])
-        print("log loss for {} : {}".format(
-            generalizer.name(),
-            log_loss(sg.train_target, layer0_partial_guess[generalizer_index, :, :])
-        ))
+        guess = layer0_partial_guess[generalizer_index, :, numpy.unique(sg.train_target)].T
+        print_logloss(generalizer.name(), sg.train_target, guess)
     return(layer0_partial_guess)
 
-def train_whole(sg, generalizers, save_predictions = True):
+def train_whole(sg, generalizers, save_predictions = True, suffix = ''):
     layer0_whole_guess = numpy.array([generalizer.guess_whole(sg) for generalizer in generalizers])
     for generalizer_index, generalizer in enumerate(generalizers):
         if save_predictions:
-            Generalizer.save_whole(generalizer.name(),
+            Generalizer.save_whole(generalizer.name() + suffix,
                                    layer0_whole_guess[generalizer_index])
     return(layer0_whole_guess)
 
@@ -57,21 +59,30 @@ def load_layer0(filenames):
                                         filename in filenames])
     return(layer0_partial_guess, layer0_whole_guess)
 
-def initialize_sg():
+def initialize_sg(year):
     n_folds = 3
+    n_classes = 39
     # (train_data, train_target, test_data) = load_bio_data()
     # (train_data, train_target, test_data) = load_iris_data()
-    (train_data, train_target, test_data) = load_sfcc_data()
-    return(StackedGeneralization(n_folds, train_data, train_target, test_data))
+    (train_data, train_target, test_data) = load_sfcc_data(year)
+    return(StackedGeneralization(
+        n_folds,
+        train_data,
+        train_target,
+        test_data,
+        n_classes))
 
 def main():
-    sg = initialize_sg()
+    valid_years = range(2003, 2016)
     # for ad-hoc training
-    # generalizers = [ExtraTrees()]
-    # layer0_partial_guess = train_partial(sg, generalizers)
-    # del layer0_partial_guess
-    # layer0_whole_guess = train_whole(sg, generalizers)
-    # return
+    for year in valid_years:
+        sg = initialize_sg(year)
+        generalizers = [RandomForest()]
+        suffix = "_{}".format(year)
+        layer0_partial_guess = train_partial(sg, generalizers, True, suffix)
+        del layer0_partial_guess
+        layer0_whole_guess = train_whole(sg, generalizers, True, suffix)
+    return
 
     # loading predictions
     layer0_partial_guess, layer0_whole_guess = load_layer0(['random_forest',

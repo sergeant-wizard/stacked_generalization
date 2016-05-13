@@ -11,13 +11,14 @@ class Generalizer:
 
     def guess_partial(self, sg):
         assert(isinstance(sg, StackedGeneralization))
-        generalizer_prediction = numpy.empty((0, sg.n_classes))
+        generalizer_prediction = numpy.zeros((sg.train_data.shape[0], sg.n_classes))
         for train_index, test_index in sg.skf:
             self.train(sg.train_data[train_index],
                        sg.train_target[train_index])
-            generalizer_prediction = numpy.vstack((
-                generalizer_prediction,
-                self.predict(sg.train_data[test_index])))
+            # fold_prediction may have less # of classes than sg.n_classes
+            unique_classes = numpy.unique(sg.train_target[train_index])
+            fold_prediction = self.predict(sg.train_data[test_index])
+            generalizer_prediction[test_index[:, None], unique_classes] = fold_prediction
 
         reorder_index = [test_index for _, test_indices in sg.skf for test_index in test_indices]
         return(generalizer_prediction[reorder_index, :])
