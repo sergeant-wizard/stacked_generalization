@@ -76,7 +76,7 @@ def initialize_sg(year):
         n_classes))
 
 def main():
-    num_year_partitions = 2
+    num_year_partitions = 1
     # # for ad-hoc training
     # for year_partition_index in range(num_year_partitions):
     #     sg = initialize_sg(year_partition_index)
