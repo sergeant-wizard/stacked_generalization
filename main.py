@@ -77,16 +77,15 @@ def initialize_sg(year):
 
 def main():
     num_year_partitions = 2
-    # for ad-hoc training
-    for year_partition_index in range(num_year_partitions):
-        sg = initialize_sg(year_partition_index)
-        generalizers = [RandomForest(), ExtraTrees()]
-        suffix = "_{}".format(year_partition_index)
-        layer0_partial_guess = train_partial(sg, generalizers, True, suffix)
-        assert(False)
-        del layer0_partial_guess
-        layer0_whole_guess = train_whole(sg, generalizers, True, suffix)
-    return
+    # # for ad-hoc training
+    # for year_partition_index in range(num_year_partitions):
+    #     sg = initialize_sg(year_partition_index)
+    #     generalizers = [RandomForest(), ExtraTrees()]
+    #     suffix = "_{}".format(year_partition_index)
+    #     layer0_partial_guess = train_partial(sg, generalizers, True, suffix)
+    #     del layer0_partial_guess
+    #     layer0_whole_guess = train_whole(sg, generalizers, True, suffix)
+    # return
 
     header = 'Id,ARSON,ASSAULT,BAD CHECKS,BRIBERY,BURGLARY,DISORDERLY CONDUCT,DRIVING UNDER THE INFLUENCE,DRUG/NARCOTIC,DRUNKENNESS,EMBEZZLEMENT,EXTORTION,FAMILY OFFENSES,FORGERY/COUNTERFEITING,FRAUD,GAMBLING,KIDNAPPING,LARCENY/THEFT,LIQUOR LAWS,LOITERING,MISSING PERSON,NON-CRIMINAL,OTHER OFFENSES,PORNOGRAPHY/OBSCENE MAT,PROSTITUTION,RECOVERED VEHICLE,ROBBERY,RUNAWAY,SECONDARY CODES,SEX OFFENSES FORCIBLE,SEX OFFENSES NON FORCIBLE,STOLEN PROPERTY,SUICIDE,SUSPICIOUS OCC,TREA,TRESPASS,VANDALISM,VEHICLE THEFT,WARRANTS,WEAPON LAWS'
     fmt = '%d,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f,%1.6f'
@@ -94,10 +93,10 @@ def main():
     # loading predictions
     n_classes = 39
     result = numpy.empty((0, n_classes))
-    for year in valid_years:
-        print("processing year {}".format(year))
-        sg = initialize_sg(year)
-        layer0_partial_guess, layer0_whole_guess = load_with_suffix(['random_forest', 'extra_trees'], year)
+    for year_partition_index in range(num_year_partitions):
+        print("processing year partition index{}".format(year_partition_index))
+        sg = initialize_sg(year_partition_index)
+        layer0_partial_guess, layer0_whole_guess = load_with_suffix(['random_forest', 'extra_trees'], year_partition_index)
 
         prediction = LogisticRegression().guess(
             numpy.hstack(layer0_partial_guess),
