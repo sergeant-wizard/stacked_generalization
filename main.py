@@ -3,6 +3,7 @@ import numpy
 
 from random_forest import RandomForest
 from extra_trees import ExtraTrees
+from gen_xgboost import Xgboost
 from logistic_regression import LogisticRegression
 from stacked_generalization import StackedGeneralization
 from generalizer import Generalizer
@@ -93,7 +94,7 @@ def layer1():
     for class_index in range(n_classes):
         print("processing class index{}".format(class_index))
         sg = initialize_sg(class_index)
-        layer0_partial_guess, layer0_whole_guess = load_with_suffix(['random_forest', 'extra_trees'], class_index)
+        layer0_partial_guess, layer0_whole_guess = load_with_suffix(['extra_trees', 'xg_boost'], class_index)
 
         prediction = LogisticRegression().guess(
             numpy.hstack(layer0_partial_guess),

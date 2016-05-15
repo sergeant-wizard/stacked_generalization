@@ -1,4 +1,5 @@
 import xgboost as xgb
+import numpy
 from generalizer import Generalizer
 
 class Xgboost(Generalizer):
@@ -16,4 +17,5 @@ class Xgboost(Generalizer):
 
     def predict(self, data):
         dmatrix = xgb.DMatrix(data)
-        return(self.model.predict(dmatrix))
+        predicted = self.model.predict(dmatrix)
+        return(numpy.vstack((1 - predicted, predicted)).T)
