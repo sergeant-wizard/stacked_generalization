@@ -9,7 +9,7 @@ from stacked_generalization import StackedGeneralization
 from generalizer import Generalizer
 from sklearn import datasets # for debugging with iris
 
-n_classes = 39
+n_classes = 21
 
 def load_bio_data():
     raw_train = numpy.loadtxt('train.csv', delimiter=',', skiprows=1)
@@ -78,7 +78,7 @@ def initialize_sg():
 
 def layer0():
     sg = initialize_sg()
-    generalizers = [RandomForest()]
+    generalizers = [Xgboost()]
     layer0_partial_guess = train_partial(sg, generalizers, True)
     del layer0_partial_guess
     layer0_whole_guess = train_whole(sg, generalizers, True)
@@ -103,6 +103,10 @@ def format_for_kaggle():
 
     n_rows = 884262
     result = numpy.load("layer1_result.npy")
+    used = [1, 4, 5, 7, 12, 13, 16, 19, 20, 21, 23, 25, 27, 28, 30, 32, 34, 35,
+            36, 37, 38]
+    result_ex = numpy.zeros((result.shape[0], 39))
+    result_ex[:, used] = result
 
     id_column = numpy.array(range(result.shape[0]))
 
@@ -114,4 +118,4 @@ def format_for_kaggle():
         comments='')
 
 if __name__ == "__main__":
-    layer1()
+    layer0()
