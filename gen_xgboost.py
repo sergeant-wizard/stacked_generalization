@@ -11,7 +11,7 @@ class Xgboost(Generalizer):
         params = {
             'objective': 'multi:softprob',
             'eta': 1.0,
-            'num_class': 39
+            'num_class': 21
         }
         num_round = 10
         self.model = xgb.train(params, dtrain, num_round)
